@@ -1,6 +1,6 @@
 ---
 name: html-to-pptx
-version: 1.0.0
+version: 1.1.0
 description: >
   Use this skill whenever a user wants to create a richly styled, fully editable PowerPoint presentation.
   This skill first generates a visually rich HTML preview, then converts it to a native PPTX file where
@@ -137,7 +137,7 @@ python /home/claude/html-to-pptx/scripts/extract_style.py \
 | 圆形 | `<div class="shape">` | `data-type="ellipse"` |
 | 箭头 | `<div class="shape">` | `data-type="arrow" data-direction="right/left/up/down"` |
 | 表格 | `<table class="pptx-table">` | — |
-| 图表 | `<div class="chart-box">` | `data-type="bar/line/pie" data-chart='JSON'` |
+| 图表 | `<div class="placeholder">` | `data-chart-type` + `data-chart` |
 
 **文字元素示例：**
 ```html
@@ -153,7 +153,7 @@ python /home/claude/html-to-pptx/scripts/extract_style.py \
 <!-- 矩形色块 -->
 <div class="shape" data-type="rect"
      style="position:absolute; left:0; top:0; width:400px; height:720px;
-            background:#1a1a2e; border-radius:0;">
+            background:#1a1a2e;">
 </div>
 
 <!-- 圆形装饰 -->
@@ -162,6 +162,53 @@ python /home/claude/html-to-pptx/scripts/extract_style.py \
             background:rgba(255,200,0,0.3);">
 </div>
 ```
+
+---
+
+### ⚠️ KPI 卡片必须用容器包裹写法
+
+这是最容易出错的地方。**绝对不要**把背景色块和文字写成两个独立的绝对定位元素——坐标映射时会产生偏移，导致数字与卡片错位。
+
+**❌ 错误写法（背景和文字分离）：**
+```html
+<!-- 背景色块 -->
+<div class="shape" data-type="rect"
+     style="position:absolute; left:40px; top:120px; width:260px; height:130px; background:#1e40af;">
+</div>
+<!-- 文字单独定位，坐标很容易和色块对不上 -->
+<div class="text-box" data-type="text"
+     style="position:absolute; left:60px; top:140px; width:220px; height:60px;
+            font-size:48px; font-weight:bold; color:#ffffff;">
+  $4.82B
+</div>
+```
+
+**✅ 正确写法（容器包裹，背景+文字在同一元素内）：**
+```html
+<div class="shape" data-type="rect"
+     style="position:absolute; left:40px; top:120px; width:260px; height:150px;
+            background:#1e40af;">
+  <div class="text-box" data-type="text"
+       style="padding: 16px 20px 0 20px; font-size:13px; color:#93c5fd;">
+    2024年总收入
+  </div>
+  <div class="text-box" data-type="text"
+       style="padding: 6px 20px 0 20px;
+              font-size:52px; font-weight:bold; color:#ffffff; line-height:1.1;">
+    $4.82B
+  </div>
+  <div class="text-box" data-type="text"
+       style="padding: 4px 20px 0 20px; font-size:12px; color:#bfdbfe;">
+    ▲ 28.4% YoY
+  </div>
+</div>
+```
+
+**容器包裹的四条规则：**
+1. 外层 `<div class="shape">` 负责背景色和绝对定位坐标
+2. 内层文字用 `padding` 控制位置，**不使用 `position:absolute`**
+3. 外层高度要留足余量，宁多勿少（比内容总高多 20px 以上）
+4. 适用于所有"色块背景+文字叠加"的组合：KPI卡片、标签、说明框、角标
 
 **图表元素（推荐：placeholder 机制）：**
 

@@ -185,6 +185,11 @@ html-to-pptx/
 
 ## Changelog
 
+### v1.1.0
+- 新增 KPI 卡片容器包裹写法规范，彻底解决数字/文字与背景色块错位问题
+- convert.py 支持识别并正确渲染容器包裹写法中的嵌套文字
+- SKILL.md 增加错误写法 vs 正确写法对比示例
+
 ### v1.0.0
 - Initial release
 - Full element mapping: text, shapes, images, tables, charts
